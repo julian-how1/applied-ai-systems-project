@@ -1,14 +1,16 @@
 # What are the limitations of your system?
-
+One of the limitations of this system are that it's reliant on Gemini API's free tier, I had an issue earlier where the AI suggestion would get stuck and then return error code "503 high demand", so a fallback onto a less busy server in order to get it to work. Another is that the CSV informationn isn't certified by health specialists or anything it was made with Claude AI using general pet care advice. The CSV coverage also isn't very large, there's only 5 kinds of pets, and suggestions are based on if keywords were recognized in the users prompt meaning odd wording can cause something to be missed, and then the system falls back onto general knowledge instead of the CSV.
 
 
 # Could your Ai be misused, and how would you prevent that?
+Since this project is relatively simple, and is just a scheduling assistant the only real risk is if someone was to treat this app as veterinary advice. This can be prevented by adding a disclaimer to the top of the AI page letting the users know that the app was not intended to be treated as such.
 
 
-
-# What surpriesd you while testing your AI's reliability?
+# What surprised you while testing your AI's reliability?
+I think my biggest surprise was the fact that I kept getting stuck on the "503 high demand" error code. I was worried that I was going to have problems running this app with the free tier of gemini since that error code never showed up when I was working on my previous pc builder project doing almost the same thing. That error code is actually part of the reason as to why I decided to implement a CSV, because I knew I had one last time and I thought that maybe Gemini was struggling to create something from scratch based on trying to gather info from around the internet. However, this error taught me the importance of including fall back models into projects, for example searching through the gemini models until it finds one that isn't busy instead of solely relying on one.
 
 
 
 
 # Describe your collaboration with AI during this project
+AI was a large part of this project, I started by explaining the original scope of the project and then how I wanted to change it to implement Gemini API into it. Since my idea of using an api to generate a schedule instead of manually having to input everything you wanted wasn't very advanced Claude was able to follow this exactly how I imagined it to. The main thing that I gave it some freedom for but still accepted was the UI change, I was kind of vague on how I wanted the coloring to be but it gave me some themes and I chose one, when I verified what it looked like after running the streamlit I was satifised with the results, so I kept it. The biggest suggestion that I decided to change was gemini always pulling info on how to make the schedule from general info around the web, and I changed it to the CSV. I did this so that the responses would always be consistent, and I had more control on how the responses would look since I was using Claude to make the "blue print" for all of the responses.

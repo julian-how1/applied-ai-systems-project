@@ -4,6 +4,10 @@ PawPal+ was a streamlit app that allowed a pet owner to plan out their schedule 
 # Enhanced Project: PawPlanner
 PawPlanner is an enhanced version of the original PawPal+ that still allows for a schedule to be made in the original way of a user inputing tasks, pets, and priorties if chosen, but also gives the option for a user to use natural language to make a schedule from scratch/change a schedule with the assistantance of a Gemini api and CSV file. The CSV file was implemented instead of letting Gemini api kind of "freestyle" the answer so that the project would be using a RAG. The recommendations are consistent, and the description provides guidelines based on the CSV as to why something was placed where it was. It also uses a self checking loop where the plan is checked against scheduling rules, and is sent back if there are any errors, these plans are only solved after the user approves of the schedule.
 
+# Architecture Overview: 
+The system diagram shows PawPlanner as four connected groups: the Streamlit app the user interacts with, the AI agent, the data and services it relies on, and the testing and evaluation tools. Data flows left to right: the pet owner's plain-English request goes from the AI Planner page into the agent, which moves through five steps: Interpret, Retrieve, Propose, Check, and Explain. During Retrieve, the agent pulls matching care guidelines from the CSV knowledge base, and during Propose and Explain it exchanges prompts and replies with the Gemini API. The Check step tests every proposal against the original scheduler, and the loop arrow back to Propose shows that a plan which breaks the rules is returned to the AI to fix, up to three times. The finished plan then reaches the orange Human Review diamond, where the owner chooses to apply or discard it before anything is saved. The green Tester and Evaluator boxes show that the agent is also checked by automated tests and real-AI evaluation scenarios, while the "Build it myself" path shows that the original manual workflow still works without the AI.
+
+
 # Setup instructions
 1. Requirements
   - Python 3.10 or newer
@@ -99,5 +103,16 @@ Warning: Ear drops (Buddy) and Dinner (Whiskers) both start at 17:30
 The AI changed only the one task causing the clash and left the rest of the day alone. The validator also flagged the skipped brushing task, and the explanation passed that warning on to the user.
 
 # Design Decisions
-A big influence for the design of this project was a previous project I did with Gemini api and making a pc build suggestor. I liked the idea of using a CSV file since it gave me more control of the the responses the api would be giving, and it keeps everything consistent for returning users. A trade off with using a CSV compared to letting Gemini API provide it's own responses is that the responses given can only be as good as the CSV provided for it. This might cause some issues if a user has some hyper specific schedule and tasks preferences that were missed in being defined inside of the CSV, however for a class project I think what I have suffices, if this was something of larger scale the CSV would have to be expanded.
+A big influence for the design of this project was a previous project I did with Gemini api and making a pc build suggestor. I liked the idea of using a CSV file since it gave me more control of the the responses the api would be giving, and it keeps responses consistent for the same types of request. A trade off with using a CSV compared to letting Gemini API provide it's own responses is that the responses given can only be as good as the CSV provided for it. This might cause some issues if a user has some hyper specific schedule and tasks preferences that were missed in being defined inside of the CSV, if it can't be found in the CSV it will have to fall back to the general info from Gemini. However, for a class project I think what I have suffices, if this was something of larger scale the CSV would have to be expanded.
 
+# Testing Summary
+- All 68 automated test pass, they used a fake AI so they don't need an API key to run
+- 8 of 8 Gemini evaluations pass validity and usefullness checks
+- With Rag vs. without RAG on creating scenarios (3/3 vs 2/3 successes)
+## What didn't work
+- Gemini's free tier kept getting overload and provided error code 503, before fixing with backup models the request would hang for 5+ minutes or return an error
+- First rag attempt failed 2/3 scenarios making 2 bugs known: a timeout error, and a retrival in the users input on a preference, both ended up being fixed
+
+
+# Reflection Summary (more in model card)
+Working on this project taught me how important having back up plans are for your projects, since originally when trying to test the responses of the api I kept getting error "503 high demand". Claude showed me how to allow the api to use backup Gemini models, which greatly reduced the time that it took for a response to be generated, and completely prevented the timeouts and error codes from happening. Another thing it taught me was how even though coding with AI makes things easier and faster that it's still really important to read everything that your coding assistant is doing, and you might have to step in and tell it to stop. There were a handful of times where I instructed it to do one task, but it just kept going on and on, and I had to stop it and explained that it felt like I was losing control of what was being made because it was getting creative without me. Some future improvements for this project would be getting actual vet-reviewed guidelines, a larger CSV, and a better system rather than keyword matching.
