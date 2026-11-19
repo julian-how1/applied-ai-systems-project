@@ -1,0 +1,72 @@
+flowchart LR
+    %% PawPal+ AI system: main components, how data flows, and where humans and tests check the AI.
+    %% Colors: orange = human check, blue = automated rule check, purple = AI model, green = testing.
+
+    owner([👤 Pet owner]):::human
+
+    subgraph UI["🖥️ Streamlit app (app.py + views/)"]
+        direction TB
+        aiPage["✨ AI Planner page<br/>views/ai_assistant.py"]
+        review{"👤 HUMAN REVIEW<br/>sees preview, guidelines,<br/>explanation.<br/>Apply or Discard?"}:::human
+        manual["📝 Build-it-myself page<br/>views/manual.py<br/>(original workflow)"]
+    end
+
+    subgraph AGENT["🧠 Agent: PawPalAgent loop (pawpal_ai.py)"]
+        direction TB
+        interpret["Step 1 · Interpret<br/>create vs adjust mode,<br/>snapshot of pets and tasks"]
+        retrieve["Step 2 · Retrieve (RAG)<br/>Retriever: pawpal_rag.py<br/>matches species, age, keywords"]
+        propose["Step 3 · Propose<br/>AI returns JSON actions"]:::ai
+        check["Step 4 · Check (validator)<br/>runs on a COPY of the data:<br/>valid fields, no new overlaps,<br/>fits time, keeps high-priority care"]:::guard
+        explain["Step 5 · Explain<br/>AI explanation +<br/>check that its times are real"]:::ai
+        interpret --> retrieve
+        retrieve -- "guidelines + request + state" --> propose
+        propose -- "proposed actions" --> check
+        check -- "❌ errors sent back,<br/>AI revises (max 3 rounds)" --> propose
+        check -- "✅ passes every rule" --> explain
+    end
+
+    subgraph DATA["Data and services"]
+        direction TB
+        kb[("📚 Knowledge base<br/>data/pet_care_guidelines.csv")]
+        llm["🤖 Gemini API<br/>GeminiClient: backup models,<br/>timeouts, skips busy models"]:::ai
+        sched["⚙️ Scheduler (original)<br/>pawpal_system.py"]
+        state[("🐾 Pets and tasks<br/>st.session_state")]
+        logs[("🗒️ logs/pawpal_ai.log")]
+    end
+
+    subgraph QA["🧪 Testing and evaluation"]
+        direction TB
+        tests["Tester: pytest, 68 tests<br/>fake AI, no API key needed"]:::test
+        evaluator["Evaluator: evaluate_ai.py<br/>8 scenarios on real Gemini,<br/>validity + usefulness,<br/>with vs without RAG"]:::test
+        results[("logs/eval_*.json")]
+        evaluator --> results
+    end
+
+    %% Request in
+    owner -- "plain-English request" --> aiPage
+    aiPage -- "request" --> interpret
+    state -. "current pets and tasks" .-> interpret
+    kb -- "relevant rows" --> retrieve
+    propose <-- "prompt / JSON" --> llm
+    explain <-- "prompt / text" --> llm
+    check <-- "test plan on copy" --> sched
+    AGENT -. "every round logged" .-> logs
+
+    %% Result back to the human
+    explain -- "plan + explanation<br/>+ guidelines used" --> review
+    review -- "Apply: re-checked, then saved" --> state
+    review -- "Discard: nothing changes" --> owner
+
+    %% Original manual workflow, still available
+    owner -- "manual edits" --> manual
+    manual --> state
+    manual -- "generate schedule" --> sched
+
+    %% Quality checks on the AI
+    tests -. "verifies agent, validator,<br/>retriever, fallback" .-> AGENT
+    evaluator -. "runs real requests through" .-> AGENT
+
+    classDef human fill:#FFE3CC,stroke:#FF9A5C,stroke-width:2px,color:#2A1A12
+    classDef guard fill:#DCEBFF,stroke:#4A86E8,stroke-width:2px,color:#10243F
+    classDef ai fill:#EBDDFF,stroke:#8E5CE6,stroke-width:2px,color:#24123F
+    classDef test fill:#D9F2E3,stroke:#3BAA6B,stroke-width:2px,color:#12301F

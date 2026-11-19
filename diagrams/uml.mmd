@@ -1,5 +1,6 @@
 classDiagram
-    %% Keep this file updated so it matches your final implementation.
+    %% Core PawPal+ classes (pawpal_system.py). The AI layer is built around these
+    %% without changing them; see ai_system.mmd for the AI components and data flow.
 
     class Owner {
         +str name
@@ -19,6 +20,8 @@ classDiagram
         +list~Task~ tasks
         +add_task(task: Task) None
         +remove_task(task: Task) None
+        +complete_task(task: Task, on: date) Task
+        +undo_complete(task: Task) None
         +get_tasks() list~Task~
     }
 
@@ -30,9 +33,11 @@ classDiagram
         +str frequency
         +time preferred_time
         +date last_completed
+        +date due_date
         +priority_rank() int
         +mark_complete(on: date) None
         +is_completed(on: date) bool
+        +next_occurrence() Task
         +is_due_today(today: date) bool
         +edit(**changes) None
     }
@@ -52,15 +57,19 @@ classDiagram
         +list skipped
         +generate_plan() list~ScheduledTask~
         +sort_by_priority(tasks: list) list
+        +sort_by_time(tasks: list) list
+        +filter_tasks(pet_name: str, completed: bool) list
         +filter_by_time(tasks: list) list
         +detect_conflicts() list
+        +conflict_warnings() list~str~
         +explain_plan() str
-        -_add_entry(pet, task, start, reason) None
-        -_next_free_slot(earliest: datetime, duration_minutes: int) datetime
+        -add_entry(pet, task, start, reason) None
+        -next_free_slot(earliest, minutes) datetime
     }
 
     Owner "1" o-- "*" Pet : has
     Pet "1" *-- "*" Task : has
+    Task --> Task : next occurrence
     Scheduler --> Owner : plans for
     Scheduler "1" *-- "*" ScheduledTask : builds
     ScheduledTask --> Pet
