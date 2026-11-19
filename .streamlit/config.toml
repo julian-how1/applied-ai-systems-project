@@ -1,0 +1,12 @@
+[theme]
+base = "dark"
+primaryColor = "#FF9A5C"
+backgroundColor = "#1E1714"
+secondaryBackgroundColor = "#2B211C"
+textColor = "#F8ECE3"
+borderColor = "#4A3A31"
+showWidgetBorder = true
+baseRadius = "0.9rem"
+buttonRadius = "full"
+font = "Nunito:https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+headingFont = "Fredoka:https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap"
