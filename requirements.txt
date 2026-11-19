@@ -1,2 +1,5 @@
-streamlit>=1.30
+# Minimum versions are the ones this project was tested with.
+streamlit>=1.65
 pytest>=7.0
+google-genai>=2.30
+python-dotenv>=1.0
